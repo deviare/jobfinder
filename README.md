@@ -13,7 +13,7 @@ solve it and run it again.
 
 # To Do
 
-- Handle login with request to avoid selenium related problems 
+- [ ] Handle login with request to avoid selenium related problems 
 
 # usage
 ```
