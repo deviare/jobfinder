@@ -16,7 +16,7 @@ solve it and run it again.
 - Handle login with request to avoid selenium related problems 
 
 # usage
-'''
+```
 pip3 install -r requirements.txt
 python3 jobfinder.py -h
-'''
+```
