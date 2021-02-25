@@ -36,7 +36,7 @@ class linkedin():
         
         self.br.set_window_size(1000,650)
 
-        print('[+] Starting reserch of website company on linkedin.com [+]')
+        print('[+] Starting reserch for website company on linkedin.com [+]')
         self.br.get('https://www.linkedin.com/login')
         sleep(5)
         usr_input=self.br.find_element_by_xpath('//*[@id="username"]')
@@ -60,7 +60,7 @@ class linkedin():
             self.br.find_element_by_xpath('/html/body/div[9]/header/div[2]/nav/ul/li[3]').click()
         except:
             pass
-        sleep(8)
+        sleep(4)
         self.close_stuff()
 
 
@@ -75,7 +75,7 @@ class linkedin():
         input_job.send_keys(job) 
         input_place.send_keys(city)
         btn_search.click()
-        sleep(5) 
+        sleep(3) 
        
 
     def close_stuff(self):
@@ -84,7 +84,7 @@ class linkedin():
             banner_btn = self.br.find_element_by_xpath('//*[@id="ember235"]')
             ActionChains(self. br).move_to_element(banner_btn).click().perform()
         except NoSuchElementException:
-            print('button for close cookie banner not found')
+            pass 
         
         # closing chat 
         sleep(5)
@@ -130,18 +130,20 @@ class linkedin():
        
 
     def get_urls(self, link_list):    
-        urls_list = []
-        
+        urls_list=[]
+        urls_old=[]
         try:
             with open('urls_list.txt', 'r') as inp:
                 with open('urls_old.txt', 'a') as out:
                     for line in inp.readlines():
                         out.write(line)
+
+            with open('urls_old.txt', 'r') as f:
+                urls_old=f.readlines()
+        
         except IOError:
             pass
 
-        with open('urls_old.txt', 'r') as f:
-            urls_old=f.readlines()
 
         for link in link_list:
             link.send_keys(Keys.CONTROL + Keys.RETURN)
@@ -156,7 +158,7 @@ class linkedin():
                 self.br.switch_to.window(wind_0)
                 continue
             site_url = a_link.get_attribute('href')     
-           
+        
             if site_url in urls_old:
                 continue
 
