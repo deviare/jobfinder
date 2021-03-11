@@ -25,21 +25,26 @@ def extract_link_from_url(url):
 
 
 def crawl(url):
-    href_links=extract_link_from_url(url)
-    if href_links:
-        for link in href_links:
-            link = urljoin(url,str(link))
-            if "#" in link:
-                link = link.split("#")[0]
-            
-            page = re.search('p=\d+$',link)
-            if url in link and page is None:
-                if '.css' not in url and '.js' not in url and 'start=' not in url:
-                    if '.png' not in url and '.jpg' not in url:
-                        if 'page' not in link and 'offerte-lavoro' not in link:
-                            if link not in target_links:
-                                target_links.append(link)
-                                crawl(link)
+    try:
+
+        href_links=extract_link_from_url(url)
+        if href_links:
+            for link in href_links:
+                link = urljoin(url,str(link))
+                if "#" in link:
+                    link = link.split("#")[0]
+                
+                page = re.search('p=\d+$',link)
+                if url in link and page is None:
+                    if '.css' not in url and '.js' not in url and 'start=' not in url:
+                        if '.png' not in url and '.jpg' not in url:
+                            if 'page' not in link and 'offerte-lavoro' not in link:
+                                if link not in target_links:
+                                    target_links.append(link)
+                                    crawl(link)
+    except KeyboardInterrupt:
+        return
+
 
 
 def lunch_threads(num,domains):

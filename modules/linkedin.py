@@ -3,8 +3,8 @@ from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import ActionChains
-from selenium.common.exceptions import NoSuchElementException
-
+from selenium.common.exceptions import NoSuchElementException, TimeoutException
+from selenium.webdriver.support.ui import WebDriverWait
 
 class linkedin():
 
@@ -38,30 +38,23 @@ class linkedin():
 
         print('[+] Starting reserch for website company on linkedin.com [+]')
         self.br.get('https://www.linkedin.com/login')
-        sleep(5)
-        usr_input=self.br.find_element_by_xpath('//*[@id="username"]')
+        usr_input=WebDriverWait(self.br, 30).until( lambda br : br.find_element_by_xpath('//*[@id="username"]') )
         pass_input=self.br.find_element_by_xpath('//*[@id="password"]')
         buttons_in_page = self.br.find_elements_by_tag_name('button')
-        
-        for btn in buttons_in_page:
-            if 'Sign in' in btn.text:
-                login_btn=btn
-        
+        login_btn = [ btn for btn in buttons_in_page if 'Sign in' in btn.text ][0]
+
         usr_input.send_keys(self.username)
         pass_input.send_keys(self.password)
         login_btn.click()
         sleep(5)
 
         try:
-            self.br.find_element_by_xpath('/html/body/div[8]/header/div[2]/nav/ul/li[3]').click()
-        except:
-            pass
-        try:
-            self.br.find_element_by_xpath('/html/body/div[9]/header/div[2]/nav/ul/li[3]').click()
-        except:
-            pass
-        sleep(4)
+            search_tab = WebDriverWait(self.br, 30).until( lambda br : br.find_element_by_xpath('/html/body/div[8]/header/div[2]/nav/ul/li[3]'))
+        except TimeoutException as e:
+            search_tab = WebDriverWait(self.br, 30).until( lambda br : br.find_element_by_xpath('/html/body/div[9]/header/div[2]/nav/ul/li[3]'))
+
         self.close_stuff()
+        search_tab.click()
 
 
     def look_for_jobs(self, job, city):
@@ -79,21 +72,19 @@ class linkedin():
        
 
     def close_stuff(self):
-        #close cookie banner 
-        try:
-            banner_btn = self.br.find_element_by_xpath('//*[@id="ember235"]')
-            ActionChains(self. br).move_to_element(banner_btn).click().perform()
-        except NoSuchElementException:
-            pass 
         
         # closing chat 
-        sleep(5)
-        spans_in_page=self.br.find_elements_by_tag_name('span')
+        sleep(10)
+        spans_in_page = WebDriverWait(self.br, 30).until( lambda br : br.find_elements_by_tag_name('span'))
+
+        start_span = [ span for span in spans_in_page if 'Messaggistica' in span.text]
+
         for span in spans_in_page:
             if 'Messaggistica' in span.text:
-                start_span=span
-        
-        close_chat_btn=start_span.find_element_by_xpath('./../../../../section[2]/button[2]')
+                if span.get_attribute('aria-hidden') == 'true':
+                    start_span=span
+    
+        close_chat_btn = start_span.find_element_by_xpath('./../../../../section[2]/button[2]')
 
         try:
             close_chat_btn.click()
@@ -147,7 +138,7 @@ class linkedin():
 
         for link in link_list:
             link.send_keys(Keys.CONTROL + Keys.RETURN)
-            sleep(5)
+            sleep(2)
             wind_1=self.br.window_handles[1] 
             self.br.switch_to.window(wind_1)
             a_link = self.find_link()        
@@ -202,22 +193,6 @@ class linkedin():
     def find_link(self):
         sleep(10)
         try:
-            icon1=self.br.find_element_by_xpath('/html/body/div[9]/div[3]/div/div[3]/div[1]/section/div/div/div[2]/div[1]/div[2]/div/div/a/span/li-icon')
-            site_icon=icon1
-        except:
-            pass
-        try:
-            icon2=self.br.find_element_by_xpath('/html/body/div[8]/div[3]/div/div[3]/div[1]/section/div/div/div[2]/div[1]/div[2]/div/div/a/span/li-icon')
-            site_icon=icon2
-        except:
-            pass
-        try:
-            icon3=self.br.find_element_by_xpath('/html/body/div[7]/div[3]/div/div[3]/div[1]/section/div/div/div[2]/div[1]/div[2]/div/div/a/span/li-icon')
-            site_icon=icon3
-        except:
-            pass
-
-        try:
             icon3=self.br.find_element_by_css_selector('[d="M15 1v6h-2V4.41L7.41 10 6 8.59 11.59 3H9V1zm-4 10a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1h2V3H5a3 3 0 00-3 3v5a3 3 0 003 3h5a3 3 0 003-3V9h-2z"]')
             site_icon=icon3
         except:
@@ -247,14 +222,10 @@ class linkedin():
 
 
     def find_button(self):
+
         try:
             btn1=self.br.find_element_by_xpath('/html/body/div[9]/div[3]/div/section/section[1]/div/div/button')
             btn_search = btn1
-        except:
-            pass
-        try:
-            btn2=self.br.find_element_by_xpath('/html/body/div[9]/div[3]/div/section/section[1]/div/div/div[2]/button')
-            btn_search = btn2
         except:
             pass
         try:
@@ -263,21 +234,9 @@ class linkedin():
         except:
             pass
         try:
-            btn4=self.br.find_element_by_xpath("/html/body/div[9]/header/div[2]/div/div/div/div[2]/button")
-            btn_search=btn4
-        except:
-            pass
-        try:
-            btn4=self.br.find_element_by_xpath("/html/body/div[8]/div[3]/div/section/section[1]/div/div/div[2]/button")
-            btn_search=btn4
-        except:
-            pass
-        try:
-            btns=self.br.find_elements_by_tag_name("button")
-            for btn in btns:
-                if 'Cerca' in btn.text:
-                    btn_search=btn
-        except:
+            btns = self.br.find_elements_by_tag_name("button")
+            btn_search = [ btn for btn in btns if btn.text == 'Cerca' ][0]
+        except BaseException as e:
             pass
 
         return btn_search
