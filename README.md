@@ -14,6 +14,8 @@ solve it and run it again.
 # To Do
 
 - [ ] Handle login with request to avoid selenium related problems 
+- [ ] Sobstitute sleep call to WebDriverWait
+- [ ] Fix bugs 
 
 # usage
 ```
