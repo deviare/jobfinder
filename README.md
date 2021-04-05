@@ -43,7 +43,7 @@ optional arguments:
 Format for credentials in command line argument or in file:
 username:password
 
-Format for target jobs in command line argument of file (evrey line):
+Format for target jobs in command line argument or in file (evrey line):
 job:city
 
 Format for file smtp credentials:
