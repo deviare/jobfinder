@@ -57,6 +57,6 @@ sqlite3 jobs.db
 # All the resutlts
 SELECT * FROM offerts;
 
-# Offerts with emal associeted
+# Offerts with email associeted
 SELECT * FROM offerts WHERE email is not null and email != 'unknown';
 ```
