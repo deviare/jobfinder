@@ -5,7 +5,7 @@ then crawl each company sites looking for emails address using regex and save da
 Optionaly can send mail to apply to the job, must provide credentials for smtp server, body text, and attachement (Curriculum) 
 
 The program assume you have firefox and geckodriver installed respectively in /usr/bin/firefox-esr and /usr/local/bin/geckodriver
-and you are using a *nix-like system 
+and you are using a *nix system 
 
 The program is build to run with a linkedin account with italian lenguage.
 
