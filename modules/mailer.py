@@ -10,7 +10,7 @@ class Mailer():
     
     def set_server(self, username, password, server, port):
         try:
-            smtp=smtplib.SMTP_ SSL(server, port)
+            smtp=smtplib.SMTP_SSL(server, port)
             smtp.ehlo()
             smtp.login(username, password)
             
@@ -33,7 +33,7 @@ class Mailer():
             message=""
             lines=mail.readlines()
             for line in lines:
-                message=messa ge+line 
+                message=message+line 
         return message
 
     def get_address(self):
