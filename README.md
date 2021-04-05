@@ -1,11 +1,11 @@
 # jobfinder
 
-This script scarp linkedin jobs offerts with Selenium and write company sites down,
-then crowl each sites looking for emails address using regex and write them down.
-Optionaly can send mail to apply to the job, must provide credentials for smtp server, body text, and attachement (Curriculum)
+This script scarp linkedin jobs offerts with Selenium,
+then crawl each company sites looking for emails address using regex and save data in the database.
+Optionaly can send mail to apply to the job, must provide credentials for smtp server, body text, and attachement (Curriculum) 
 
 The program assume you have firefox and geckodriver installed respectively in /usr/bin/firefox-esr and /usr/local/bin/geckodriver
-and you are using a *nix-like system ( if you don't, you should)
+and you are using a *nix-like system 
 
 The program is build to run with a linkedin account with italian lenguage.
 
@@ -24,4 +24,28 @@ solve it and run it again.
 ```
 pip3 install -r requirements.txt
 python3 jobfinder.py -h
+usage: jobfinder.py [-h] (-r PATH_JOBS | -j JOB) (-l CREDS | -c PATH_CREDS)
+                    [-a] [-C C] [-M M] [-A A] [-H]
+
+optional arguments:
+  -h, --help     show this help message and exit
+  -r PATH_JOBS   path to file with target jobs
+  -j JOB         job and city target [job:city]
+  -l CREDS       username and password linkedin account [username:password]
+  -c PATH_CREDS  path to file with credentials
+  -H             run it not headless (show browser)
+
+  -a             apply to jobs sending an email, reqired -M, -C, -A
+  -C C           path to file with credentials smp server
+  -M M           path to file with email body
+  -A A           path to file to attach (Curriculum)
+
+Format for credentials in command line argument or in file:
+username:password
+
+Format for target jobs in command line argument of file (evrey line):
+job:city
+
+Format for file smtp credentials:
+username:password:server:port
 ```
