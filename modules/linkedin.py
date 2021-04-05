@@ -24,9 +24,17 @@ class linkedin():
         
         return webdriver.Firefox(profile, options=opt, firefox_binary='/usr/bin/firefox-esr',executable_path='/usr/local/bin/geckodriver')
 
+
+    def create_db(self):
+        conn = sqlite3.connect('jobs.db')
+        query = ' create table if not exists offerts ( title CHAR(100), email CHAR(50), apply BOOLEAN DEFAULT 0, search CHAR(100), url char(200), id INTEGER PRIMARY KEY);'
+        conn.execute(query)
+        return conn
+   
    
     def __init__(self, usr, passwd, headless ):
         self.br= self.set_driver(headless) 
+        self.conn = self.create_db()
         self.username = usr
         self.password = passwd
 
@@ -121,24 +129,30 @@ class linkedin():
        
 
     def get_urls(self, link_list):    
-        urls_list=[]
-        urls_old=[]
+        urls_list = []
+        ctrl = False
         try:
-            with open('urls_list.txt', 'r') as inp:
-                with open('urls_old.txt', 'a') as out:
-                    for line in inp.readlines():
-                        out.write(line)
-
-            with open('urls_old.txt', 'r') as f:
-                urls_old=f.readlines()
-        
-        except IOError:
-            pass
-
+            query = 'select title from offerts;'
+            cur = self.conn.cursor()
+            title_list = cur.execute(query).fetchall()
+        except sqlite3.DatabaseError as e:
+            title_list = []
+            print(e)
 
         for link in link_list:
+            title_link = link.find_element_by_xpath('./../../div/a')
+            title_href = title_link.get_attribute('href')
+            if '/jobs' in title_href:
+                title= title_link.text
+                for title_job in title_list:
+                    if title in title_job[0]:
+                        ctrl=True            
+            else:
+                title = 'unknown'
+            if ctrl:
+                continue
             link.send_keys(Keys.CONTROL + Keys.RETURN)
-            sleep(2)
+            sleep(5)
             wind_1=self.br.window_handles[1] 
             self.br.switch_to.window(wind_1)
             a_link = self.find_link()        
@@ -149,21 +163,26 @@ class linkedin():
                 self.br.switch_to.window(wind_0)
                 continue
             site_url = a_link.get_attribute('href')     
-        
-            if site_url in urls_old:
-                continue
-
-            print(f'[+] found new site -> {site_url}')
+            print(f'[+] found site -> {site_url} [+]')
             urls_list.append(site_url)
+            try:
+                offert = ( title , f'{self.job}:{self.city.strip()}', site_url, )
+                c = self.conn.cursor()
+                c.execute(
+                        'INSERT INTO offerts (title, search, url) '+
+                        'VALUES (?,?,?)', offert
+                        )
+                self.conn.commit()
+            except sqlite3.DatabaseError as e:
+                print(e)
+            except BaseError as e:
+                print(e)
+
             self.br.switch_to.window(wind_1)
             self.br.close()
             wind_0=self.br.window_handles[0]
             self.br.switch_to.window(wind_0)
-        
-        
-        with open("url_list.txt", "a") as out_file:
-            for url in urls_list:
-                out_file.write(url+'\n')
+
                 
 
     def unique(self, list1): 
@@ -242,4 +261,5 @@ class linkedin():
         return btn_search
 
     def close_driver(self):
+        self.conn.close()
         self.br.quit()

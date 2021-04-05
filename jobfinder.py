@@ -129,8 +129,8 @@ def run_bot():
         linked.get_urls(linked.extract_company())
     linked.close_driver()
     print("[+] Crowling founded sites for email address [+]")
-    get_mails.main()
-    print('[+] E-mail address written to ./emails.txt [+]')
+    crawler = get_mails.Crawler()
+    crawler.main()
     
     if  args['smtp']:
         print('[+] Starting to sending mail [+]')
