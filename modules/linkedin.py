@@ -1,3 +1,5 @@
+import sqlite3
+import sys
 from time import sleep
 from selenium import webdriver 
 from selenium.webdriver.firefox.options import Options
@@ -5,6 +7,8 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver import ActionChains
 from selenium.common.exceptions import NoSuchElementException, TimeoutException
 from selenium.webdriver.support.ui import WebDriverWait
+
+
 
 class linkedin():
 
@@ -26,9 +30,14 @@ class linkedin():
 
 
     def create_db(self):
-        conn = sqlite3.connect('jobs.db')
-        query = ' create table if not exists offerts ( title CHAR(100), email CHAR(50), apply BOOLEAN DEFAULT 0, search CHAR(100), url char(200), id INTEGER PRIMARY KEY);'
-        conn.execute(query)
+        try:
+            conn = sqlite3.connect('jobs.db')
+            cur = conn.cursor()
+            query = ' create table if not exists offerts ( title CHAR(100), email CHAR(50), apply BOOLEAN DEFAULT 0, search CHAR(100), url char(200), id INTEGER PRIMARY KEY);'
+            cur.execute(query)
+        except sqlite3.DatabaseError as r:
+            print(e)
+            sys.exit(1)
         return conn
    
    
@@ -37,6 +46,8 @@ class linkedin():
         self.conn = self.create_db()
         self.username = usr
         self.password = passwd
+        self.city=''
+        self.job=''
 
               
     def login(self):
@@ -75,6 +86,8 @@ class linkedin():
         input_place.clear()
         input_job.send_keys(job) 
         input_place.send_keys(city)
+        self.job=job
+        self.city=city
         btn_search.click()
         sleep(3) 
        
@@ -174,8 +187,6 @@ class linkedin():
                         )
                 self.conn.commit()
             except sqlite3.DatabaseError as e:
-                print(e)
-            except BaseError as e:
                 print(e)
 
             self.br.switch_to.window(wind_1)

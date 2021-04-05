@@ -15,7 +15,7 @@ def parse_command_line():
                 Format for credentials in command line argument or in file:
                 username:password
 
-                Format for target jobs in command line argument of file (evrey line):
+                Format for target jobs in command line argument or in file (evrey line):
                 job:city
                 
                 Format for file smtp credentials:
@@ -121,7 +121,6 @@ def run_bot():
     print("[+] Starting Selenium WebDriver [+]")
     linked=linkedin.linkedin(username, password, headless) 
     linked.login()
-
     for trg in targets:
         job, city =trg.split(':')
         linked.look_for_jobs(job, city)
@@ -131,12 +130,12 @@ def run_bot():
     print("[+] Crowling founded sites for email address [+]")
     crawler = get_mails.Crawler()
     crawler.main()
-    
     if  args['smtp']:
         print('[+] Starting to sending mail [+]')
         run_mailer(args['smtp'])
         
     else:
+        print('[+] Done, you can check the results on jobs.db (sqlite3 database) [+]')
         sys.exit(0)
 
 

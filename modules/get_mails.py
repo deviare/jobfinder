@@ -3,11 +3,7 @@ import re
 from urllib.parse import urljoin, urlsplit
 from requests import exceptions
 from contextlib import suppress
-
-from concurrent.futures import ThreadPoolExecutor
 from threading import Thread, Lock
-
-
 import sqlite3
 
 
@@ -33,7 +29,6 @@ class Crawler():
         self.conn = self.open_db() 
         self.mail_list = []
         self.parsed_links = []
-        self.mail_count = 0
 
 
 
@@ -44,11 +39,9 @@ class Crawler():
             mails = re.findall('([a-zA-Z0-9-_.]{1,20}?@[a-zA-Z0-9-._+]+?\.[a-zA-Z]{3})', str(response.content))
 
 
-            print(f'checking url -> {url}')
             if mails:
                 for mail in mails:
                     if '.png'   not in mail and '.jpg' not in mail:
-                        print(mail)
                         splitted = urlsplit(url)
                         base_url = splitted[1]
                         tuple = ( mail, base_url )
@@ -65,11 +58,7 @@ class Crawler():
                             return re.findall('(?:href=")(.*?)"',str(response.content) )
 
                         self.mail_list.append(mail)
-                        self.mail_count+=1
-                        print(f' mails...  -> {self.mail_count}')
                         return False 
-
-
 
             return re.findall('(?:href=")(.*?)"',str(response.content) )
 
@@ -78,13 +67,10 @@ class Crawler():
         href_links=self.extract_link_from_url(lock, url)
 
         if href_links:
-
-
             for link in href_links:
                 link = urljoin(url,str(link))
                 if "#" in link:
                     link = link.split("#")[0]
-                
                 page = re.search('p=\d+$',link)
                 if url in link and page is None:
                     if '.css' not in link and '.js' not in link and 'start=' not in link:
@@ -112,17 +98,14 @@ class Crawler():
 
 
     def main(self):
-        print(f' number of thread -> {len(self.tmp_list)}')
         self.lunch_threads(self.tmp_list)
         query_update = "update offerts set email='unknown' where email is null;"
-
         try:
             cur = self.conn.cursor()
             cur.execute(query_update)
             self.conn.commit()
         except sqlite3.DatabaseError as e:
             print(e)
-
         self.conn.close()
 
 
