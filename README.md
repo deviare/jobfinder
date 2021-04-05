@@ -49,3 +49,14 @@ job:city
 Format for file smtp credentials:
 username:password:server:port
 ```
+
+For see the resutls:
+```
+sqlite3 jobs.db
+
+# All the resutlts
+SELECT * FROM offerts;
+
+# Offerts with emal associeted
+SELECT * FROM offerts WHERE email is not null and email != 'unknown';
+```
