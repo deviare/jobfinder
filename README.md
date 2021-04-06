@@ -50,7 +50,7 @@ Format for file smtp credentials:
 username:password:server:port
 ```
 
-For see the resutls:
+For see the results:
 ```
 sqlite3 jobs.db
 
