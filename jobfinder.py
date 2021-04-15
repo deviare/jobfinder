@@ -125,9 +125,16 @@ def run_bot():
         job, city =trg.split(':')
         linked.look_for_jobs(job, city)
         sleep(5)
-        linked.extract_company()
-    linked.close_driver()
-    print("[+] Crowling founded sites for email address [+]")
+        try:
+            linked.extract_company()
+        except:
+            print('[-] Something went wrong.. [-]')
+            break
+    try:
+        linked.close_driver()
+    except:
+        pass
+    print("[+] Crowling founded sites for email addresses [+]")
     crawler = get_mails.Crawler()
     crawler.main()
     if  args['smtp']:

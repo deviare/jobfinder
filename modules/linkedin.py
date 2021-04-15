@@ -324,3 +324,4 @@ class linkedin():
     def close_driver(self):
         self.conn.close()
         self.br.quit()
+        print('[+] Closing WebDriver [+]')
