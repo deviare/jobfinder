@@ -43,9 +43,20 @@ optional arguments:
 Format for credentials in command line argument or in file:
 username:password
 
-Format for target jobs in command line argument of file (evrey line):
+Format for target jobs in command line argument or in file (evrey line):
 job:city
 
 Format for file smtp credentials:
 username:password:server:port
+```
+
+For see the results:
+```
+sqlite3 jobs.db
+
+# All the resutlts
+SELECT * FROM offerts;
+
+# Offerts with email associeted
+SELECT * FROM offerts WHERE email is not null and email != 'unknown';
 ```
