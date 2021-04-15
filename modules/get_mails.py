@@ -58,6 +58,7 @@ class Crawler():
                             return re.findall('(?:href=")(.*?)"',str(response.content) )
 
                         self.mail_list.append(mail)
+                        print(f'[+] Found email address {mail} for {base_url} [+]')
                         return False 
 
             return re.findall('(?:href=")(.*?)"',str(response.content) )

@@ -125,7 +125,7 @@ def run_bot():
         job, city =trg.split(':')
         linked.look_for_jobs(job, city)
         sleep(5)
-        linked.get_urls(linked.extract_company())
+        linked.extract_company()
     linked.close_driver()
     print("[+] Crowling founded sites for email address [+]")
     crawler = get_mails.Crawler()

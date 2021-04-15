@@ -31,12 +31,12 @@ class linkedin():
 
     def create_db(self):
         try:
-            conn = sqlite3.connect('jobs.db')
+            conn = sqlite3.connect('jobs.db') 
             cur = conn.cursor()
             query = ' create table if not exists offerts ( title CHAR(100), email CHAR(50), apply BOOLEAN DEFAULT 0, search CHAR(100), url char(200), id INTEGER PRIMARY KEY);'
             cur.execute(query)
         except sqlite3.DatabaseError as r:
-            print(e)
+            print(e) 
             sys.exit(1)
         return conn
    
@@ -52,9 +52,7 @@ class linkedin():
               
     def login(self):
         
-        
         self.br.set_window_size(1000,650)
-
         print('[+] Starting reserch for website company on linkedin.com [+]')
         self.br.get('https://www.linkedin.com/login')
         usr_input=WebDriverWait(self.br, 30).until( lambda br : br.find_element_by_xpath('//*[@id="username"]') )
@@ -68,9 +66,9 @@ class linkedin():
         sleep(5)
 
         try:
-            search_tab = WebDriverWait(self.br, 30).until( lambda br : br.find_element_by_xpath('/html/body/div[8]/header/div[2]/nav/ul/li[3]'))
+            search_tab = WebDriverWait(self.br, 30).until( lambda br  : br.find_element_by_xpath('/html/body/div[9]/header/div[2]/nav/ul/li[3]'))
         except TimeoutException as e:
-            search_tab = WebDriverWait(self.br, 30).until( lambda br : br.find_element_by_xpath('/html/body/div[9]/header/div[2]/nav/ul/li[3]'))
+            search_tab = WebDriverWait(self.br, 30).until( lambda br :  br.find_element_by_xpath('/html/body/div[8]/header/div[2]/nav/ul/li[3]'))
 
         self.close_stuff()
         search_tab.click()
@@ -98,10 +96,10 @@ class linkedin():
         sleep(10)
         spans_in_page = WebDriverWait(self.br, 30).until( lambda br : br.find_elements_by_tag_name('span'))
 
-        start_span = [ span for span in spans_in_page if 'Messaggistica' in span.text]
+        #start_span = [ span for span in spans_in_page if 'Messaggistica' in span.text]
 
         for span in spans_in_page:
-            if 'Messaggistica' in span.text:
+            if 'Messaging' in span.text:
                 if span.get_attribute('aria-hidden') == 'true':
                     start_span=span
     
@@ -114,23 +112,36 @@ class linkedin():
 
 
     def go_to_bottom(self):
-        jobs_list= self.find_ul()
         sleep(2)
+        jobs_list= self.find_ul()
         action_chain=ActionChains(self.br)
         self.br.execute_script("window.focus();")
         action_chain.move_to_element(jobs_list).pause(3).send_keys(Keys.SHIFT).perform()
         scroll_div=jobs_list.find_element_by_xpath("./..")
-        for x in range(30):
+        for x in range(20):
             scroll_div.send_keys(Keys.PAGE_DOWN)
-            sleep(1)
+            sleep(1) 
 
-    def extract_company(self):
-        urls_list=[]
-        link_list=[]
-        self.go_to_bottom()
+
+    def find_pages(self):
+        pages_btn = []
+        try:
+            pages_ul = self.br.find_element_by_css_selector('.artdeco-pagination__pages')
+        except NoSuchElementException:
+            print('[-] No more page found [-]')
+            return []
+        pages_li_list = pages_ul.find_elements_by_tag_name('li')
+        for li in pages_li_list:
+            page_btn = li.find_element_by_tag_name('button')
+            pages_btn.append(page_btn)
+
+        return pages_btn
+
+        
+    def get_company_urls(self):
+        link_list = []
         jobs_list= self.find_ul()
         li_elements=jobs_list.find_elements_by_tag_name("li")
-        sleep(3)
         for ele in li_elements:
             links=ele.find_elements_by_tag_name("a")
             for link in links:
@@ -139,45 +150,84 @@ class linkedin():
                    link_list.append(link)
         link_list=self.unique(link_list)
         return link_list
-       
+
+
+
+    def extract_company(self):
+        page_btns = self.find_pages() 
+        if len(page_btns) > 0:
+            for index in range(len(page_btns)):
+                self.go_to_bottom()
+                page_btns = self.find_pages() 
+                link_list = self.get_company_urls()
+                self.get_urls(link_list)
+                page_btns[index].click()
+        else:
+            self.go_to_bottom()
+            link_list = self.get_company_urls()
+            self.get_urls(link_list)
+
+
+
+    def switch_to_wind0(self):
+        wind_1=self.br.window_handles[1] 
+        self.br.switch_to.window(wind_1)
+        self.br.close()
+        wind_0=self.br.window_handles[0]
+        self.br.switch_to.window(wind_0)
 
     def get_urls(self, link_list):    
-        urls_list = []
         ctrl = False
+        job_dic = {}
         try:
-            query = 'select title from offerts;'
+            query = 'select title, url from offerts;'
             cur = self.conn.cursor()
-            title_list = cur.execute(query).fetchall()
+            result = cur.execute(query).fetchall()
         except sqlite3.DatabaseError as e:
-            title_list = []
+            title_list  = []
             print(e)
 
         for link in link_list:
-            title_link = link.find_element_by_xpath('./../../div/a')
+            try:
+                title_link =  WebDriverWait(link ,10).until( lambda link : link.find_element_by_xpath('./../../div/a') )
+            except TimeoutException:
+                print(f'[-] Error parsing current offert... passing to the next one [-]')
+                continue
+
+
             title_href = title_link.get_attribute('href')
             if '/jobs' in title_href:
                 title= title_link.text
-                for title_job in title_list:
-                    if title in title_job[0]:
-                        ctrl=True            
             else:
                 title = 'unknown'
-            if ctrl:
-                continue
             link.send_keys(Keys.CONTROL + Keys.RETURN)
-            sleep(5)
+            sleep(2)
             wind_1=self.br.window_handles[1] 
             self.br.switch_to.window(wind_1)
-            a_link = self.find_link()        
+            a_link = self.find_link()
+
+            if self.check_ban():
+                self.close_driver()
+
             if a_link is None:
-                self.br.switch_to.window(wind_1)
-                self.br.close()
-                wind_0=self.br.window_handles[0]
-                self.br.switch_to.window(wind_0)
+                self.switch_to_wind0()
+                continue 
+            
+
+            next_offert  = False
+            site_url = a_link.get_attribute('href')
+            for touple in result:
+                tit, url = touple
+                if title == tit:
+                    if site_url == url:
+                        print(f' [-] Offert already in databese, passing to the next one [-]')
+                        self.switch_to_wind0()
+                        next_offert = True
+                        break
+            if next_offert:
                 continue
-            site_url = a_link.get_attribute('href')     
-            print(f'[+] found site -> {site_url} [+]')
-            urls_list.append(site_url)
+
+            print(f'[+] found new offerts {title} by {site_url} [+]')
             try:
                 offert = ( title , f'{self.job}:{self.city.strip()}', site_url, )
                 c = self.conn.cursor()
@@ -189,12 +239,18 @@ class linkedin():
             except sqlite3.DatabaseError as e:
                 print(e)
 
-            self.br.switch_to.window(wind_1)
-            self.br.close()
-            wind_0=self.br.window_handles[0]
-            self.br.switch_to.window(wind_0)
+            self.switch_to_wind0()
 
-                
+    def check_ban(self):
+        try:
+            h1_list = self.br.find_elements_by_tag_name('h1')
+            canary = [ h1 for h1 in h1_list if h1.text = 'Sign up for free to get more' ][0]
+            if canary is not None:
+                print('[-] Probably you have been banned... passing to crawling stage [-]')
+                return True
+        except:
+            return False
+
 
     def unique(self, list1): 
         unique_list = [] 
@@ -221,22 +277,16 @@ class linkedin():
 
 
     def find_link(self):
-        sleep(10)
         try:
-            icon3=self.br.find_element_by_css_selector('[d="M15 1v6h-2V4.41L7.41 10 6 8.59 11.59 3H9V1zm-4 10a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1h2V3H5a3 3 0 00-3 3v5a3 3 0 003 3h5a3 3 0 003-3V9h-2z"]')
-            site_icon=icon3
-        except:
-            pass
-
-        try:
-            parent_link=site_icon.find_element_by_xpath("./../../../..")
-        except:
-            print('[-] Site of company not found [-]')
+            icon_external =  WebDriverWait(self.br, 30).until( lambda br : br.find_element_by_css_selector('[d="M15 1v6h-2V4.41L7.41 10 6 8.59 11.59 3H9V1zm-4 10a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1h2V3H5a3 3 0 00-3 3v5a3 3 0 003 3h5a3 3 0 003-3V9h-2z"]'))
+            parent_link = icon_external.find_element_by_xpath("./../../../..")
+        except TimeoutException:
+            print('[-] Company site not found [-]')
             return None
         return parent_link
 
     def find_ul(self):
-        sleep(10)
+        sleep(3)
         try:
             list2 = self.br.find_element_by_xpath('/html/body/div[9]/div[3]/div[3]/div/div/section[1]/div/div/ul')
             jobs_list=list2
@@ -265,7 +315,7 @@ class linkedin():
             pass
         try:
             btns = self.br.find_elements_by_tag_name("button")
-            btn_search = [ btn for btn in btns if btn.text == 'Cerca' ][0]
+            btn_search = [ btn for btn in btns if btn.text == 'Search' ][0]
         except BaseException as e:
             pass
 
