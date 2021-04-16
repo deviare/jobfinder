@@ -244,8 +244,8 @@ class linkedin():
     def check_ban(self):
         try:
             h1_list = self.br.find_elements_by_tag_name('h1')
-            canary = [ h1 for h1 in h1_list if h1.text = 'Sign up for free to get more' ][0]
-            if canary is not None:
+            canary = [ h1 for h1 in h1_list if h1.text = 'Sign up for free to get more' ]
+            if canary:
                 print('[-] Probably you have been banned... passing to crawling stage [-]')
                 return True
         except:
