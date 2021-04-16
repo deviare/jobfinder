@@ -7,7 +7,10 @@ Optionaly can send mail to apply to the job, must provide credentials for smtp s
 The program assume you have firefox and geckodriver installed respectively in /usr/bin/firefox-esr and /usr/local/bin/geckodriver
 and you are using a *nix system 
 
-The program is build to run with a linkedin account with italian lenguage.
+The program is build to run with a linkedin account with english lenguage.
+It could take a good amount of time to finish depending on the number of search query you use
+
+Since Linkedin is scarp unfriendly I suggest to use a dummy account for the research, to avoid been ban with your profesional account.
 
 Many things can go wrong with linkedin and Selenium, I will try to keep it updated
 If you have problem during login, try to run it not headless (-H) possibly linkedin have reconize Selenium and ask for a captcha,
