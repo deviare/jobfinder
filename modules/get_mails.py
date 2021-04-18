@@ -5,8 +5,10 @@ from requests import exceptions
 from contextlib import suppress
 from threading import Thread, Lock
 import sqlite3
-from time import sleep
 from sys import exit
+import csv
+from datetime import date
+
 
 class Crawler():
 
@@ -17,7 +19,9 @@ class Crawler():
             cur = conn.cursor()
             query = 'select distinct url from offerts where email is NULL;'
             cursor = cur.execute(query)
-            tuple_url=cursor.fetchall() 
+            tuple_url=cursor.fetchall()
+            cursor.close()
+
             for url in tuple_url:
                 self.tmp_list.append(url[0])
         except sqlite3.DatabaseError:
@@ -53,6 +57,7 @@ class Crawler():
                             cur = self.conn.cursor()
                             cur.execute(query, tuple)
                             self.conn.commit()
+                            cur.close()
                             self.lock.release()
                         except sqlite3.DatabaseError as e :
                             print(e)
@@ -98,6 +103,29 @@ class Crawler():
             thread.join()
 
 
+    
+    def create_csv(self):
+        
+        today = str(date.today())
+        query_email = "select title, url, email from offerts where email != 'unknown'"
+        result_set=None
+        try:
+            cur = self.conn.cursor()
+            result_set = cur.execute(query_email)
+        except sqlite3.DataError as e:
+            print(e)
+        finally:
+            if result_set:
+                with open( f'jobs_{today}.csv', 'w' ) as file:
+                    writer = csv.writer(file)
+                    for row in result_set:
+                        writer.writerow([ row[0], row[1], row[2] ])
+                
+                cur.close()
+
+
+
+
 
     def main(self):
         self.lunch_threads(self.tmp_list)
@@ -108,6 +136,9 @@ class Crawler():
             self.conn.commit()
         except sqlite3.DatabaseError as e:
             print(e)
+
+        print('[+] Genereting csv file whit founded emails [+]')
+        self.create_csv()
         self.conn.close()
 
 

@@ -1,6 +1,7 @@
 import sqlite3
-import sys
+from sys import exit
 from time import sleep
+from datetime import date
 from selenium import webdriver 
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.keys import Keys
@@ -33,11 +34,11 @@ class linkedin():
         try:
             conn = sqlite3.connect('jobs.db') 
             cur = conn.cursor()
-            query = ' create table if not exists offerts ( title CHAR(100), email CHAR(50), apply BOOLEAN DEFAULT 0, search CHAR(100), url char(200), id INTEGER PRIMARY KEY);'
+            query = ' create table if not exists offerts ( title CHAR(100), email CHAR(50), apply BOOLEAN DEFAULT 0, search CHAR(100), url char(200), date_add CHAR(20), date_apply CHAR(20), id INTEGER PRIMARY KEY);'
             cur.execute(query)
         except sqlite3.DatabaseError as r:
-            print(e) 
-            sys.exit(1)
+            print('[-] Error connecting with database [-]', r) 
+            exit(1)
         return conn
    
    
@@ -156,7 +157,7 @@ class linkedin():
     def extract_company(self):
         page_btns = self.find_pages() 
         if len(page_btns) > 0:
-            for index in range(len(page_btns)):
+            for index in range(1,len(page_btns)):
                 self.go_to_bottom()
                 page_btns = self.find_pages() 
                 link_list = self.get_company_urls()
@@ -179,6 +180,7 @@ class linkedin():
     def get_urls(self, link_list):    
         ctrl = False
         job_dic = {}
+        today = str(date.today())
         try:
             query = 'select title, url from offerts;'
             cur = self.conn.cursor()
@@ -206,14 +208,12 @@ class linkedin():
             self.br.switch_to.window(wind_1)
             a_link = self.find_link()
 
-            if self.check_ban():
-                self.close_driver()
+            self.check_ban()
 
             if a_link is None:
                 self.switch_to_wind0()
                 continue 
             
-
             next_offert  = False
             site_url = a_link.get_attribute('href')
             for touple in result:
@@ -229,11 +229,11 @@ class linkedin():
 
             print(f'[+] found new offerts {title} by {site_url} [+]')
             try:
-                offert = ( title , f'{self.job}:{self.city.strip()}', site_url, )
+                offert = ( title , f'{self.job}:{self.city.strip()}', site_url, today, )
                 c = self.conn.cursor()
                 c.execute(
-                        'INSERT INTO offerts (title, search, url) '+
-                        'VALUES (?,?,?)', offert
+                        'INSERT INTO offerts (title, search, url, date_add) '+
+                        'VALUES (?,?,?,?)', offert
                         )
                 self.conn.commit()
             except sqlite3.DatabaseError as e:
@@ -244,13 +244,14 @@ class linkedin():
     def check_ban(self):
         try:
             h1_list = self.br.find_elements_by_tag_name('h1')
-            canary = [ h1 for h1 in h1_list if h1.text = 'Sign up for free to get more' ]
+            canary = [ h1 for h1 in h1_list if h1.text == 'Sign up for free to get more' ]
             if canary:
                 print('[-] Probably you have been banned... passing to crawling stage [-]')
-                return True
+                self.close_driver()
+                self.conn.close()
+                exit(1)
         except:
-            return False
-
+            pass
 
     def unique(self, list1): 
         unique_list = [] 

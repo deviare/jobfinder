@@ -3,7 +3,7 @@ from time import sleep
 import textwrap
 import sys
 from modules import linkedin, get_mails, mailer
-
+from threading import Thread
 
 
 def parse_command_line():
@@ -111,6 +111,18 @@ def run_mailer(args):
     mailer.send_mails()
 
 
+def run_linkdein( username, password, headless, targets ):
+    linked=linkedin.linkedin(username, password, headless) 
+    linked.login()
+    for trg in targets:
+        job, city =trg.split(':')
+        linked.look_for_jobs(job, city)
+        sleep(5)
+        linked.extract_company()
+    
+    linked.close_driver()
+
+
 
 def run_bot():
     args=set_args()
@@ -119,21 +131,9 @@ def run_bot():
     headless=args['headless']
     targets=args['target']
     print("[+] Starting Selenium WebDriver [+]")
-    linked=linkedin.linkedin(username, password, headless) 
-    linked.login()
-    for trg in targets:
-        job, city =trg.split(':')
-        linked.look_for_jobs(job, city)
-        sleep(5)
-        try:
-            linked.extract_company()
-        except:
-            print('[-] Something went wrong.. [-]')
-            break
-    try:
-        linked.close_driver()
-    except:
-        pass
+    linkedin_thread = Thread( target=run_linkdein, args=( username, password, headless, targets ) )
+    linkedin_thread.start()
+    linkedin_thread.join()
     print("[+] Crowling founded sites for email addresses [+]")
     crawler = get_mails.Crawler()
     crawler.main()
